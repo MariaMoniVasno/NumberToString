@@ -7,7 +7,7 @@
 
 \f0\fs24 \cf0 This program is to convert the numbers into human readable format.\
 
-The input range is from -9999999 to 9999999.\
+The input range is from 0 to 9999999.\
 
 The input is given through inputNum which is an Integer.
 

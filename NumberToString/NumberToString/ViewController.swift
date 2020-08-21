@@ -7,9 +7,14 @@
 //
 
 import UIKit
-//Print the any number as human readable format,Input range -9999999 to 9999999
-class ViewController: UIViewController {
+//Print the any number as human readable format,Input range 0 to 9999999
+class ViewController: UIViewController,UITextFieldDelegate {
     
+    @IBOutlet var inputTxtFld : UITextField!
+    @IBOutlet var outputLbl: UILabel!
+    @IBOutlet var calculateBtn: UIButton!
+    @IBOutlet var heightConstraints: NSLayoutConstraint!
+
     //Initializing the array of strings
     var onesArray = ["","One ","Two ","Three ","Four ","Five ","Six ","Seven ","Eight ","Nine ","Ten ","Eleven ","Twelve ","Thirteen ","Fourteen ","Fifteen ","Sixteen ","Seventeen ","Eighteen ","Nineteen "]
     var tensArray = ["","","Twenty ","Thirty ","Forty ","Fifty ","Sixty ","Seventy ","Eighty ","Ninety "]
@@ -20,21 +25,52 @@ class ViewController: UIViewController {
     var hundStr = ""
     var thousandStr = ""
     var lakhStr = ""
-    var negativeStr = ""
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        inputStr = "\(inputNum)"//Convert Int to String
-        if inputStr.contains("-"){
-        inputStr = inputStr.filter({ $0 != "-" })//Filter the minus
-        negativeStr = "Minus "
+        self.title = "NumberFormatter"
+        //inputTxtFld properties
+        inputTxtFld.textColor = .black
+        inputTxtFld.font = UIFont(name: "Helvetica", size: 16)
+        inputTxtFld.keyboardType = .numberPad
+        //outputLbl properties
+        outputLbl.textAlignment = .center
+        outputLbl.font = UIFont(name: "Helvetica", size: 16)
+        outputLbl.numberOfLines = 0
+        outputLbl.lineBreakMode = .byWordWrapping
+        outputLbl.layer.borderColor = UIColor.darkGray.cgColor
+        outputLbl.layer.borderWidth = 2
+        //calculateBtn properties
+        calculateBtn.backgroundColor = .systemBlue
+        calculateBtn.setTitle("Convert", for: UIControl.State())
+        calculateBtn.setTitleColor(.white, for: UIControl.State())
+        calculateBtn.titleLabel?.font = UIFont(name: "Helvetica", size: 20)
+        calculateBtn.layer.cornerRadius = 15
+        calculateBtn.layer.borderWidth = 1
+        calculateBtn.layer.borderColor = UIColor.white.cgColor
+    }
+    @IBAction func calculateBtnAction(_ sender: Any) {
+        inputTxtFld.resignFirstResponder()
+        inputStr = inputTxtFld.text!
+        if (inputTxtFld.text == "")
+        {
+            heightConstraints.constant = 30
+            let alert = UIAlertController(title: "Alert", message: "Please enter a number", preferredStyle: UIAlertController.Style.alert)
+            alert.addAction(UIAlertAction(title: "Click", style: UIAlertAction.Style.default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
         }
+        else{
+        inputNum = Int(inputStr)!//Convert Int to String
         if inputNum == 0{
-            print("Input - \(inputNum), Output - Zero")
+        outputLbl.text = "Zero"
+        heightConstraints.constant = 30
         }else{
         numberToString()
         }
+        }
+        
     }
-   // MARK: String Conversion Function
+    // MARK: String Conversion Function
     func numberToString(){
         var inputLeng = inputStr.count // Check the input length
         if inputLeng == 7 || inputLeng == 6{
@@ -43,31 +79,44 @@ class ViewController: UIViewController {
             hundredToString()
             lakhToString()
             if hundStr != "" && thousandStr != "" {
-                print( "Input - \(inputNum), Output - \(negativeStr)\(lakhStr)Lakh \(thousandStr)Thousand \(hundStr)Hundred \(tensDigit)")
+            outputLbl.text = "\(lakhStr)Lakh \(thousandStr)Thousand \(hundStr)Hundred \(tensDigit)"
             }else if hundStr == "" && thousandStr != "" {
-                print("Input - \(inputNum), Output - \(negativeStr)\(lakhStr)Lakh \(thousandStr)Thousand \(tensDigit)")
+            outputLbl.text = "\(lakhStr)Lakh \(thousandStr)Thousand \(tensDigit)"
             }else if hundStr != "" && thousandStr == "" {
-                print( "Input - \(inputNum), Output - \(negativeStr)\(lakhStr)Lakh \(hundStr)Hundred \(tensDigit)")
+            outputLbl.text = ( "\(lakhStr)Lakh \(hundStr)Hundred \(tensDigit)")
             }else{
-                print("Input - \(inputNum), Output - \(negativeStr)\(lakhStr)Lakh \(tensDigit)")
+            outputLbl.text = ("\(lakhStr)Lakh \(tensDigit)")
         }}else if inputLeng == 4 || inputLeng == 5{
             tensToStr()
             hundredToString()
             thousandToString()
             if hundStr != ""{
-                print( "Input - \(inputNum), Output - \(negativeStr)\(thousandStr)Thousand \(hundStr)Hundred \(tensDigit)")
+            outputLbl.text = ("\(thousandStr)Thousand \(hundStr)Hundred \(tensDigit)")
             }else{
-                print("Input - \(inputNum), Output - \(negativeStr)\(thousandStr)Thousand \(tensDigit)")
+            outputLbl.text = ("\(thousandStr)Thousand \(tensDigit)")
         }}else if inputLeng == 3{
             tensToStr()
             hundredToString()
-            print( "Input - \(inputNum), Output - \(negativeStr)\(hundStr)Hundred \(tensDigit)")
+            outputLbl.text = ( "\(hundStr)Hundred \(tensDigit)")
         }else if inputLeng == 2 || inputLeng == 1{
             tensToStr()
-            print( "Input - \(inputNum), Output - \(negativeStr)\(tensDigit)")
+            outputLbl.text = ( "\(tensDigit)")
         }else{
             //Above 99 lakhs
-            print("Input out of range")
+            outputLbl.text = ("Input out of range")
+        }
+        
+        var messageHeight = rectForText(outputLbl.text!, font: outputLbl.font, maxSize: CGSize(width: 250, height: 2000)).height
+        if messageHeight > 35
+        {
+            messageHeight = 35
+            let alertHeight = messageHeight + 30
+            heightConstraints.constant = alertHeight
+            
+        }else{
+            messageHeight = 35
+            let alertHeight = messageHeight
+            heightConstraints.constant = alertHeight
         }
     }
     func tensToStr() {
@@ -103,5 +152,39 @@ class ViewController: UIViewController {
             lakhStr = tensArray[Int((index / 10))] + onesArray[Int((index % 10))]
         }
     }
+   func rectForText(_ text: String, font: UIFont, maxSize: CGSize) -> CGSize
+    {
+        //This is a method to calculate the height
+        let attrString = NSAttributedString.init(string: text, attributes: [NSAttributedString.Key.font:font])
+        let rect = attrString.boundingRect(with: maxSize, options: NSStringDrawingOptions.usesLineFragmentOrigin, context: nil)
+        let size = CGSize(width: rect.size.width, height: rect.size.height)
+        return size
+    }
+    //MARK: TextField delegates
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool
+    {
+        outputLbl.text = ""
+        heightConstraints.constant = 30
+        let newLength = (textField.text?.count)! + string.count - range.length
+        if textField == inputTxtFld
+        {
+            if newLength <= 7
+            {
+                let Regex = "[0-9^]*"
+                let TestResult = NSPredicate.init(format:"SELF MATCHES %@",Regex)
+                return TestResult.evaluate(with: string)
+            }
+            else
+            {
+                return false
+            }
+        }
+            
+        else
+        {
+            return false
+        }
+    }
+    
 }
 
